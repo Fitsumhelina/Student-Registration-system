@@ -1,6 +1,6 @@
 # Student Registration System
 
-This project is a Python-based Student Registration System that allows admins to manage students and courses, and allows students to register and manage their courses. The system uses a file-based approach to store data.
+This Python-based Student Registration System allows admins to manage students and courses, and enables students to register and manage their courses. Data is stored using a file-based approach.
 
 ## Features
 
@@ -40,7 +40,6 @@ This project is a Python-based Student Registration System that allows admins to
 - Students' data is stored in `students.txt`.
 - Courses' data is stored in `courses.txt`.
 
-
 ## Getting Started
 
 ### Prerequisites
@@ -78,9 +77,9 @@ This project is a Python-based Student Registration System that allows admins to
 
 ## Code Overview
 
-### Class `RegistrationManager`
+### `RegistrationManager` Class
 
-This class manages the registration system, providing methods to handle student registration, login, course management, and data persistence.
+This class manages the registration system, providing methods for student registration, login, course management, and data persistence.
 
 - `register_student(name, student_id, password)`: Registers a new student.
 - `login_student(student_id, password)`: Authenticates a student login.
@@ -92,7 +91,6 @@ This class manages the registration system, providing methods to handle student 
 - `view_all_students()`: Displays information about all registered students.
 - `load_data()`: Loads data from storage (students and courses files).
 - `save_data()`: Saves data to storage (students and courses files).
-
 
 ## Contributing
 
@@ -106,10 +104,6 @@ This class manages the registration system, providing methods to handle student 
 
 For any questions or suggestions, please open an issue or contact the repository owner via [LinkedIn](https://www.linkedin.com/in/fitsum-helina-57164828a/).
 
----
-
 ## License
 
-MIT License
-
-[Link to License](./LICENSE)
+This project is licensed under the MIT License - see the [LICENSE](./licence) file for details.
