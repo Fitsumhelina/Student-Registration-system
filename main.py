@@ -1,16 +1,11 @@
 import os
+import hashlib
 
 class Student:
-    """
-    Class representing a student with:
-    - name
-    - ID
-    - list of registered courses
-    """
-
-    def __init__(self, name, student_id):
+    def __init__(self, name, student_id, password):
         self.name = name
         self.student_id = student_id
+        self.password = password
         self.courses = []
 
     def add_course(self, course):
@@ -24,18 +19,12 @@ class Student:
         if self.courses:
             print(f"{self.name} is registered for the following courses:")
             for course in self.courses:
-                print(f"- {course.name}")
+                print(f"- {course}")
         else:
             print(f"{self.name} is not registered for any courses.")
 
 
 class Course:
-    """
-    Class representing a course with:
-    - course name
-    - course code
-    """
-
     def __init__(self, name, course_code):
         self.name = name
         self.course_code = course_code
@@ -45,15 +34,6 @@ class Course:
 
 
 class RegistrationManager:
-    """
-    Class managing student registration system with:
-    - adding students
-    - removing students
-    - registering students for courses
-    - unregistering students from courses
-    - displaying student information
-    """
-
     def __init__(self, student_file="students.txt", course_file="courses.txt"):
         self.student_file = student_file
         self.course_file = course_file
@@ -65,10 +45,13 @@ class RegistrationManager:
         if os.path.exists(self.student_file):
             with open(self.student_file, "r") as f:
                 for line in f:
-                    name, student_id, courses = line.strip().split(",")
-                    student = Student(name, student_id)
-                    student.courses = courses.split(";") if courses else []
-                    self.students[student_id] = student
+                    values = line.strip().split(",")
+                    if len(values) >= 3:
+                        name, student_id, password = values[:3]
+                        courses = values[3].split(";") if len(values) > 3 and values[3] else []
+                        student = Student(name, student_id, password)
+                        student.courses = courses
+                        self.students[student_id] = student
 
         if os.path.exists(self.course_file):
             with open(self.course_file, "r") as f:
@@ -80,15 +63,16 @@ class RegistrationManager:
         with open(self.student_file, "w") as f:
             for student in self.students.values():
                 courses = ";".join(student.courses)
-                f.write(f"{student.name},{student.student_id},{courses}\n")
+                f.write(f"{student.name},{student.student_id},{student.password},{courses}\n")
 
         with open(self.course_file, "w") as f:
             for course in self.courses.values():
                 f.write(f"{course.name},{course.course_code}\n")
 
-    def add_student(self, name, student_id):
+    def add_student(self, name, student_id, password):
         if student_id not in self.students:
-            self.students[student_id] = Student(name, student_id)
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            self.students[student_id] = Student(name, student_id, hashed_password)
             self.save_data()
             print(f"Student {name} added successfully.")
         else:
@@ -143,6 +127,15 @@ class RegistrationManager:
         else:
             print("Student not found.")
 
+    def display_all_students(self):
+        if self.students:
+            print("Registered Students:")
+            for student_id, student in self.students.items():
+                print(f"\nStudent ID: {student_id}")
+                self.display_student_info(student_id)
+        else:
+            print("No registered students.")
+
     def display_courses(self):
         if self.courses:
             print("Available courses:")
@@ -152,20 +145,25 @@ class RegistrationManager:
             print("No courses available.")
 
 
-def authenticate_user(role):
+def authenticate_user(role, reg_manager):
     if role == "admin":
         email = input("Enter admin email: ")
         password = input("Enter admin password: ")
         return email == "admin@gmail.com" and password == "admin"
     elif role == "student":
         student_id = input("Enter your student ID: ")
-        return student_id
+        password = input("Enter your password: ")
+        if student_id in reg_manager.students:
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            return reg_manager.students[student_id].password == hashed_password
+        else:
+            return False
     return None
 
 
 def admin_menu(reg_manager):
     while True:
-        print("\n1. Remove Student\n2. Add Course\n3. Remove Course\n4. Unregister Student from Course\n5. Logout\n")
+        print("\n1. Remove Student\n2. Add Course\n3. Remove Course\n4. Unregister Student from Course\n5. View Student Info\n6. View All Students\n7. Logout\n")
         choice = input("Enter your choice: ")
 
         if choice == '1':
@@ -187,6 +185,13 @@ def admin_menu(reg_manager):
             reg_manager.unregister_student_from_course(student_id, course_code)
 
         elif choice == '5':
+            student_id = input("Enter the student ID: ")
+            reg_manager.display_student_info(student_id)
+
+        elif choice == '6':
+            reg_manager.display_all_students()
+
+        elif choice == '7':
             break
 
         else:
@@ -215,25 +220,41 @@ def student_menu(reg_manager, student_id):
             print("Invalid choice. Please try again.")
 
 
+def student_registration(reg_manager):
+    name = input("Enter your name: ")
+    student_id = input("Enter your student ID: ")
+    password = input("Enter your password: ")
+    reg_manager.add_student(name, student_id, password)
+    print("Registration successful. You can now log in.")
+
+
 def main_menu():
     reg_manager = RegistrationManager()
 
     while True:
-        print("\n1. Admin Login\n2. Student Login\n3. Exit\n")
+        print("\n1. Admin Login\n2. Student\n3. Exit\n")
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            if authenticate_user("admin"):
+            if authenticate_user("admin", reg_manager):
                 admin_menu(reg_manager)
             else:
                 print("Invalid admin credentials.")
 
         elif choice == '2':
-            student_id = authenticate_user("student")
-            if student_id and student_id in reg_manager.students:
-                student_menu(reg_manager, student_id)
+            print("\n1. Register\n2. Login\n")
+            student_choice = input("Enter your choice: ")
+
+            if student_choice == '1':
+                student_registration(reg_manager)
+            elif student_choice == '2':
+                student_id = input("Enter your student ID: ")
+                if authenticate_user("student", reg_manager):
+                    student_menu(reg_manager, student_id)
+                else:
+                    print("Invalid student ID or password.")
             else:
-                print("Invalid student ID or student not found.")
+                print("Invalid choice. Please try again.")
 
         elif choice == '3':
             break
