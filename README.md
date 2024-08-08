@@ -1,6 +1,7 @@
 # Student Registration System
 
 This Python-based Student Registration System allows admins to manage students and courses, and enables students to register and manage their courses. Data is stored using a file-based approach.
+![Screenshot](./mock5.png) 
 
 ## Features
 
